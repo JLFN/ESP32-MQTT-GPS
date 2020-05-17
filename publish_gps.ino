@@ -86,7 +86,7 @@ double longitude = (gps.location.lng());
 
 Serial.println("********** Publish MQTT data");
 char mqtt_payload[55] = "";
-snprintf (mqtt_payload, 55, "{\"longitude\": %lf,\"latitude\": %lf}", longitude, latitude);
+snprintf (mqtt_payload, 55, "{\"latitude\": %lf,\"longitude\": %lf}", latitude, longitude);
 Serial.print("Publish message: ");
 Serial.println(mqtt_payload);
 client.publish(pubTopic, mqtt_payload);
