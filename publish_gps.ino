@@ -1,19 +1,15 @@
 /*
 *forked from
-* MQTT and AskSensors IoT Platform
-* Description: ESP32 publishes NEO-6M GPS position to AskSensors using MQTT
-* Author: https://asksensors.com, 2020
-* github: https://github.com/asksensors
+* ESP32 with ublox gps sending mqtt publish lattitude
 */
 
 #include <WiFi.h>
 #include <PubSubClient.h>
 #include <SoftwareSerial.h>
 #include <TinyGPS++.h>
+#include <ArduinoJson.h>
 
-//include "pico.h"
-
-//Wifi setup
+//TODO: ESP32 MQTT user config
 const char* ssid = "WIFISSID"; // Wifi SSID
 const char* password = "WIFIPASSWORD"; // Wifi Password
 
@@ -22,15 +18,16 @@ const unsigned int writeInterval = 25000; // write interval (in ms)
 static const int RXPin = 16, TXPin = 17;
 static const uint32_t GPSBaud = 9600;
 //MQTT server config
-const char* mqtt_server = "MQTTHOST";
-const char* mqttUser = "MQTTUSER";                //MQTT broker username
-const char* mqttPassword = "MQTTPASS";        //MQTT broker user password
-const char* pubTopic = "publish/gps/"; // publish/username/apiKeyIn
-unsigned int mqtt_port = 1883;
+const char* mqttServer = "MQTTSERVERHOST";
+const int mqttPort = 1883;
+const char* mqttUser = "MQTTUSERNAME";
+const char* mqttPassword = "MQTTPASSWORD";
+const char* pubTopic = "publish/gps"; //
+
 
 // objects
-WiFiClient askClient;
-PubSubClient client(askClient);
+WiFiClient espClient;
+PubSubClient client(espClient);
 TinyGPSPlus gps; // The TinyGPS++ object
 SoftwareSerial ss(RXPin, TXPin); // The serial connection to the GPS device
 
@@ -38,22 +35,22 @@ SoftwareSerial ss(RXPin, TXPin); // The serial connection to the GPS device
 void setup() {
 Serial.begin(115200);
 Serial.println("*****************************************************");
-Serial.println("********** Program Start : ESP32 publishes GPS position over MQTT");
-Serial.print("********** connecting to WIFI : ");
+Serial.println("Program Start : ESP32 publishes GPS position over MQTT");
+Serial.print("Connected to the WiFi network");
 Serial.println(ssid);
 
 WiFi.begin(ssid, password);
 
 while (WiFi.status() != WL_CONNECTED) {
 delay(500);
-Serial.print(".");
+Serial.print("Connecting to WiFi.");
 }
 Serial.println("");
 Serial.println("->WiFi connected");
 Serial.println("->IP address: ");
 Serial.println(WiFi.localIP());
 
-client.setServer(mqtt_server, mqtt_port);
+client.setServer(mqttServer, mqttPort);
 client.setCallback(callback);
 // GPS baud rate
 ss.begin(GPSBaud);
